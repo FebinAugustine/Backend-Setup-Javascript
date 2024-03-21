@@ -4,6 +4,8 @@ import cookieParser from "cookie-parser";
 
 const app = express();
 
+/* MIDDLEWARES */
+
 /* Set up weburl as origin */
 app.use({
   origin: process.env.CORS_ORIGIN,

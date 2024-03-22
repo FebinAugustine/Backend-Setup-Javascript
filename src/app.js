@@ -7,21 +7,26 @@ const app = express();
 /* MIDDLEWARES */
 
 /* Set up weburl as origin */
-app.use({
-  origin: process.env.CORS_ORIGIN,
-  credentials: true,
-});
-/* currently body parser is included in express package
-no need for seperate use */
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN,
+    credentials: true,
+  })
+);
+
 app.use(express.json({ limit: "16kb" }));
-
-/* Setup public folder path. Static files */
 app.use(express.static("public"));
-
-/* set up cookie parser */
 app.use(cookieParser());
-
-// url encoder
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 
-export default app;
+// app.get("/", (req, res) => {
+//   res.send("Hello from the server!"); // You can send any text or HTML here
+// });
+
+/* Routes Import */
+import userRouter from "./routes/user.routes.js";
+
+/* Routes Declaration */
+app.use("/api/v1/users", userRouter);
+
+export { app };

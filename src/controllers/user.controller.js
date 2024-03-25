@@ -25,7 +25,7 @@ const generateAccessRefreshToken = async (userId) => {
   }
 };
 
-/* REGISTER USER FUNCTION */
+/* REGISTER USER FUNCTION - TESTED */
 const registerUser = asyncHandler(async (req, res) => {
   /*  await res.status(200).json({
     message: "Success from febin",
@@ -89,7 +89,7 @@ const registerUser = asyncHandler(async (req, res) => {
     userName: userName.toLowerCase(),
   });
 
-  /* Check whether user is created by checking the id of the same. If ecreated then return the values except password and refresh token. */
+  /* Check whether user is created by checking the id of the same. If created then return the values except password and refresh token. */
   const newUserCreated = await User.findById(user._id).select(
     "-password -refreshToken"
   );
@@ -110,7 +110,7 @@ const registerUser = asyncHandler(async (req, res) => {
     );
 });
 
-/* LOGIN USER FUNCTION */
+/* LOGIN USER FUNCTION - TESTED */
 const loginUser = asyncHandler(async (req, res) => {
   /* req.body - data */
   const { userName, email, password } = req.body;
@@ -163,7 +163,7 @@ const loginUser = asyncHandler(async (req, res) => {
     );
 });
 
-/* LOGOUT USER FUNCTION */
+/* LOGOUT USER FUNCTION - TESTED */
 const logoutUser = asyncHandler(async (req, res) => {
   /* Clear cookies */
   await User.findByIdAndUpdate(
@@ -187,9 +187,11 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "User Loggedout"));
 });
 
-/* ACCESS REFRESH TOKEN ENDPOINT FUNCTION */
+/* ACCESS REFRESH TOKEN ENDPOINT FUNCTION - TESTED*/
 const refreshAccessToken = asyncHandler(async (req, res) => {
-  const incomingRefreshToken = req.refreshToken || req.body.refreshToken;
+  const incomingRefreshToken =
+    req.cookies.refreshToken || req.body.refreshToken;
+  console.log(incomingRefreshToken);
 
   if (!incomingRefreshToken) {
     throw new ApiErrors(401, "Unauthorized request");
@@ -239,7 +241,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
-/* CHANGE PASSWORD CURRENT FUNCTION */
+/* CHANGE PASSWORD CURRENT FUNCTION - TESTED */
 const changeCurrentPassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword } = req.body;
 
@@ -258,14 +260,14 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Password saved successfully"));
 });
 
-/* GET CURRENT USER FUNCTION */
+/* GET CURRENT USER FUNCTION - TESTED*/
 const getCurrentUser = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, req.user, "Got current user"));
 });
 
-/* UPDATE USER ACCOUNT DETAILS FUNCTION */
+/* UPDATE USER ACCOUNT DETAILS FUNCTION -TESTED */
 const updateAccountDetails = asyncHandler(async (req, res) => {
   const { userName, fullName, email } = req.body;
 
@@ -290,7 +292,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "Account details updated successfully"));
 });
 
-/* UPDATE AVATAR FUNCTION */
+/* UPDATE AVATAR FUNCTION - TESTED */
 const updateUserAvatar = asyncHandler(async (req, res) => {
   const avatarLocalPath = req.file?.path;
 
@@ -318,7 +320,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "Avatar updated successfully"));
 });
 
-/* UPDATE COVER IMAGE FUNCTION */
+/* UPDATE COVER IMAGE FUNCTION - TESTED */
 const updateUserCoverImage = asyncHandler(async (req, res) => {
   const coverImageLocalPath = req.file?.path;
 
@@ -346,7 +348,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "Cover image updated successfully"));
 });
 
-/* GET USER CAHNNEL PROFILE FUNCTION */
+/* GET USER CAHNNEL PROFILE FUNCTION - TESTED */
 const getUserChannelProfile = asyncHandler(async (req, res) => {
   const { username } = req.params;
 
@@ -357,7 +359,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
   const channel = await User.aggregate([
     {
       $match: {
-        username: username?.toLowerCase(),
+        userName: username?.toLowerCase(),
       },
     },
     {
@@ -385,9 +387,11 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
           $size: "$subscribedTo",
         },
         isSubscribed: {
-          if: { $in: [req.user?._id, "$subscribers.subscriber"] },
-          then: true,
-          else: false,
+          $cond: {
+            if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+            then: true,
+            else: false,
+          },
         },
       },
     },
@@ -405,6 +409,8 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     },
   ]);
 
+  console.log(channel);
+
   if (!channel?.length) {
     throw new ApiErrors(404, "Channel does not exist");
   }
@@ -415,7 +421,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     );
 });
 
-/* GET WATCH HISTORY FUNCTION */
+/* GET WATCH HISTORY FUNCTION - TESTED*/
 const getWatchHistory = asyncHandler(async (req, res) => {
   const user = await User.aggregate([
     {

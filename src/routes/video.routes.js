@@ -1,8 +1,10 @@
 import { Router } from "express";
 import {
   deleteVideo,
+  getAllVideosBasedOnQuery,
   getVideoById,
   publishVideo,
+  togglePublishStatus,
   updateVideo,
   updateVideoThumbnail,
 } from "../controllers/video.controller.js";
@@ -33,6 +35,8 @@ router
 
 router.route("/delete-video/:id").delete(verifyJWT, deleteVideo);
 router.route("/get-video/:id").get(verifyJWT, getVideoById);
+router.route("/is-published/:id").patch(verifyJWT, togglePublishStatus);
+router.route("/get-videos-query").get(verifyJWT, getAllVideosBasedOnQuery);
 
 /* Secured Routes */
 

@@ -1,8 +1,8 @@
 import mongoose, { isValidObjectId } from "mongoose";
-import asyncHandler from "../utils/asyncHandler.js";
-import ApiError from "../utils/apiError.js";
-import ApiResponse from "../utils/ApiResponse.js";
-import { Subscription } from "../models/subscriptions.model.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiErrors } from "../utils/ApiErrors.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { Subscription } from "../models/subscription.model.js";
 
 const toggleSubscription = asyncHandler(async (req, res) => {
   const { channelId } = req.params;

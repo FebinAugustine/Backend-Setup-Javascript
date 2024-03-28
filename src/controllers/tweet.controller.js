@@ -1,24 +1,26 @@
-import asyncHandler from "../utils/asyncHandler.js";
-import ApiError from "../utils/apiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import { Tweet } from "../models/tweet.model.js";
-import ApiResponse from "../utils/ApiResponse.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 import mongoose, { isValidObjectId } from "mongoose";
 import { User } from "../models/user.model.js";
+import { ApiErrors } from "../utils/ApiErrors.js";
 
+/* CREATE TWEET - CREATE TESTED */
 const createTweet = asyncHandler(async (req, res) => {
   const { content } = req.body;
+  const userId = req.user?._id;
 
   if (!content) {
-    throw new ApiError(400, "content is required");
+    throw new ApiErrors(400, "content is required");
   }
 
   const tweet = await Tweet.create({
     content,
-    owner: req.user?._id,
+    owner: userId,
   });
 
   if (!tweet) {
-    throw new ApiError(500, "failed to create tweet please try again");
+    throw new ApiErrors(500, "failed to create tweet please try again");
   }
 
   return res
@@ -26,71 +28,7 @@ const createTweet = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, tweet, "Tweet created successfully"));
 });
 
-const updateTweet = asyncHandler(async (req, res) => {
-  const { content } = req.body;
-  const { tweetId } = req.params;
-
-  if (!content) {
-    throw new ApiError(400, "content is required");
-  }
-
-  if (!isValidObjectId(tweetId)) {
-    throw new ApiError(400, "Invalid tweetId");
-  }
-
-  const tweet = await Tweet.findById(tweetId);
-
-  if (!tweet) {
-    throw new ApiError(404, "Tweet not found");
-  }
-
-  if (tweet?.owner.toString() !== req.user?._id.toString()) {
-    throw new ApiError(400, "only owner can edit thier tweet");
-  }
-
-  const newTweet = await Tweet.findByIdAndUpdate(
-    tweetId,
-    {
-      $set: {
-        content,
-      },
-    },
-    { new: true }
-  );
-
-  if (!newTweet) {
-    throw new ApiError(500, "Failed to edit tweet please try again");
-  }
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, newTweet, "Tweet updated successfully"));
-});
-
-const deleteTweet = asyncHandler(async (req, res) => {
-  const { tweetId } = req.params;
-
-  if (!isValidObjectId(tweetId)) {
-    throw new ApiError(400, "Invalid tweetId");
-  }
-
-  const tweet = await Tweet.findById(tweetId);
-
-  if (!tweet) {
-    throw new ApiError(404, "Tweet not found");
-  }
-
-  if (tweet?.owner.toString() !== req.user?._id.toString()) {
-    throw new ApiError(400, "only owner can delete thier tweet");
-  }
-
-  await Tweet.findByIdAndDelete(tweetId);
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, { tweetId }, "Tweet deleted successfully"));
-});
-
+/* GET USER TWEETS - READ TESTED */
 const getUserTweets = asyncHandler(async (req, res) => {
   const { userId } = req.params;
 
@@ -171,6 +109,73 @@ const getUserTweets = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, tweets, "Tweets fetched successfully"));
+});
+
+/* UPDATE TWEET - UPDATE TESTED */
+const updateTweet = asyncHandler(async (req, res) => {
+  const { content } = req.body;
+  const { tweetId } = req.params;
+
+  if (!content) {
+    throw new ApiError(400, "content is required");
+  }
+
+  if (!isValidObjectId(tweetId)) {
+    throw new ApiError(400, "Invalid tweetId");
+  }
+
+  const tweet = await Tweet.findById(tweetId);
+
+  if (!tweet) {
+    throw new ApiError(404, "Tweet not found");
+  }
+
+  if (tweet?.owner.toString() !== req.user?._id.toString()) {
+    throw new ApiError(400, "only owner can edit thier tweet");
+  }
+
+  const newTweet = await Tweet.findByIdAndUpdate(
+    tweetId,
+    {
+      $set: {
+        content,
+      },
+    },
+    { new: true }
+  );
+
+  if (!newTweet) {
+    throw new ApiError(500, "Failed to edit tweet please try again");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, newTweet, "Tweet updated successfully"));
+});
+
+/* DELETE TWEET - DELETE TESTED */
+const deleteTweet = asyncHandler(async (req, res) => {
+  const { tweetId } = req.params;
+
+  if (!isValidObjectId(tweetId)) {
+    throw new ApiError(400, "Invalid tweetId");
+  }
+
+  const tweet = await Tweet.findById(tweetId);
+
+  if (!tweet) {
+    throw new ApiError(404, "Tweet not found");
+  }
+
+  if (tweet?.owner.toString() !== req.user?._id.toString()) {
+    throw new ApiError(400, "only owner can delete thier tweet");
+  }
+
+  await Tweet.findByIdAndDelete(tweetId);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { tweetId }, "Tweet deleted successfully"));
 });
 
 export { createTweet, updateTweet, deleteTweet, getUserTweets };

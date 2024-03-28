@@ -4,17 +4,18 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiErrors } from "../utils/ApiErrors.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-/* TOGGLE VIDEO LIKE */
+/* TOGGLE VIDEO LIKE - TESTED */
 const toggleVideoLike = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
+  const userId = req.user?._id;
 
   if (!isValidObjectId(videoId)) {
-    throw new ApiError(400, "Invalid videoId");
+    throw new ApiErrors(400, "Invalid videoId");
   }
 
   const likedAlready = await Like.findOne({
     video: videoId,
-    likedBy: req.user?._id,
+    likedBy: userId,
   });
 
   if (likedAlready) {
@@ -23,25 +24,30 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, { isLiked: false }));
   }
 
-  await Like.create({
-    video: videoId,
-    likedBy: req.user?._id,
-  });
+  try {
+    await Like.create({
+      video: videoId,
+      likedBy: userId,
+    });
 
-  return res.status(200).json(new ApiResponse(200, { isLiked: true }));
+    return res.status(200).json(new ApiResponse(200, { isLiked: true }));
+  } catch (error) {
+    throw new ApiErrors(400, "Unable to register a like on video..!");
+  }
 });
 
-/* TOGGLE COMMENT LIKE */
+/* TOGGLE COMMENT LIKE - TESTED */
 const toggleCommentLike = asyncHandler(async (req, res) => {
   const { commentId } = req.params;
+  const userId = req.user?._id;
 
   if (!isValidObjectId(commentId)) {
-    throw new ApiError(400, "Invalid commentId");
+    throw new ApiErrors(400, "Invalid commentId");
   }
 
   const likedAlready = await Like.findOne({
     comment: commentId,
-    likedBy: req.user?._id,
+    likedBy: userId,
   });
 
   if (likedAlready) {
@@ -50,25 +56,31 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, { isLiked: false }));
   }
 
-  await Like.create({
-    comment: commentId,
-    likedBy: req.user?._id,
-  });
+  try {
+    await Like.create({
+      comment: commentId,
+      likedBy: userId,
+    });
 
-  return res.status(200).json(new ApiResponse(200, { isLiked: true }));
+    return res.status(200).json(new ApiResponse(200, { isLiked: true }));
+  } catch (error) {
+    throw new ApiErrors(402, "Unable to register a like on comment");
+    return;
+  }
 });
 
-/* TOGGLE TWEET LIKE */
+/* TOGGLE TWEET LIKE - TESTED */
 const toggleTweetLike = asyncHandler(async (req, res) => {
   const { tweetId } = req.params;
+  const userId = req.user?._id;
 
   if (!isValidObjectId(tweetId)) {
-    throw new ApiError(400, "Invalid tweetId");
+    throw new ApiErrors(400, "Invalid tweetId");
   }
 
   const likedAlready = await Like.findOne({
     tweet: tweetId,
-    likedBy: req.user?._id,
+    likedBy: userId,
   });
 
   if (likedAlready) {
@@ -79,20 +91,26 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
       .json(new ApiResponse(200, { tweetId, isLiked: false }));
   }
 
-  await Like.create({
-    tweet: tweetId,
-    likedBy: req.user?._id,
-  });
+  try {
+    await Like.create({
+      tweet: tweetId,
+      likedBy: userId,
+    });
 
-  return res.status(200).json(new ApiResponse(200, { isLiked: true }));
+    return res.status(200).json(new ApiResponse(200, { isLiked: true }));
+  } catch (error) {
+    throw new ApiErrors(402, "Unable to register a like on tweet");
+    return;
+  }
 });
 
-/* GET LIKED VIDEOS */
+/* GET LIKED VIDEOS - TESTED */
 const getLikedVideos = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
   const likedVideosAggegate = await Like.aggregate([
     {
       $match: {
-        likedBy: new mongoose.Types.ObjectId(req.user?._id),
+        likedBy: new mongoose.Types.ObjectId(userId),
       },
     },
     {

@@ -27,19 +27,8 @@ const generateAccessRefreshToken = async (userId) => {
 
 /* REGISTER USER FUNCTION - TESTED */
 const registerUser = asyncHandler(async (req, res) => {
-  /*  await res.status(200).json({
-    message: "Success from febin",
-  });
-*/
-
   /* Get user detail from frontend */
   const { fullName, userName, email, password } = req.body;
-
-  /* validations - first way of one by one checking */
-  /*  if (fullName === "") {
-    throw new ApiErrors(400, "full name is required");
-  }
-*/
 
   /* validations: check 4 empty field - preffered way */
   if (

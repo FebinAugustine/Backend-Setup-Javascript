@@ -1,7 +1,6 @@
 import { Router } from "express";
 
 import { verifyJWT } from "../middlewares/auth.middleware.js";
-import { upload } from "../middlewares/multer.middleware.js";
 import {
   addComment,
   deleteComment,
@@ -12,10 +11,10 @@ import {
 const router = Router();
 router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
 
-router.route("/create-comment/:id").post(addComment);
-router.route("/update-comment/:id").patch(updateComment);
-router.route("/read-all-comment").get(getVideoComments);
-router.route("/delete-comment").delete(deleteComment);
+router.route("/create-comment/:videoId").post(addComment);
+router.route("/read-all-comments/:videoId").get(getVideoComments);
+router.route("/update-comment/:commentId").patch(updateComment);
+router.route("/delete-comment/:commentId").delete(deleteComment);
 
 /* Secured Routes */
 

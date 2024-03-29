@@ -154,8 +154,6 @@ const getAllVideosBasedOnQuery = asyncHandler(async (req, res) => {
     newSortBy = "title";
   }
 
-  // console.log(`Limit: ${limit}, Query: ${query}, UserId: ${userId}`);
-
   const allVideos = await Video.aggregate([
     {
       $search: {
@@ -169,11 +167,8 @@ const getAllVideosBasedOnQuery = asyncHandler(async (req, res) => {
     },
     {
       $sort: {
-        [sortBy]: sortType === "asc" ? 1 : -1,
+        [newSortBy]: sortType === "asc" ? 1 : -1,
       },
-    },
-    {
-      $limit: parseInt(limit),
     },
     {
       $match: { isPublished: true },
@@ -200,11 +195,16 @@ const getAllVideosBasedOnQuery = asyncHandler(async (req, res) => {
     },
   ]);
 
-  console.log(allVideos);
+  const options = {
+    page: parseInt(page),
+    limit: parseInt(limit),
+  };
+
+  const video = await Video.aggregatePaginate(allVideos, options);
 
   return res
     .status(200)
-    .json(new ApiResponse(200, allVideos, "All videos based on your query"));
+    .json(new ApiResponse(200, video, "All videos based on your query"));
 });
 
 /* UPDATE TITLE & DESCRIPTION OF PUBLISHED VIDEO - UPDATE TESTED */
